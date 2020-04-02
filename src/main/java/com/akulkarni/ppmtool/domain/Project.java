@@ -40,12 +40,12 @@ public class Project {
     }
 
     @PrePersist
-    protected void createdAt(){
+    protected void createdAt() {
         this.created_At = new Date();
     }
 
     @PreUpdate
-    protected void updatedAt(){
+    protected void updatedAt() {
         this.updated_At = new Date();
     }
 }
