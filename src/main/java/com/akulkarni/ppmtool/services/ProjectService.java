@@ -15,9 +15,16 @@ public class ProjectService {
         try {
             project.setProjectIdentifier(project.getProjectIdentifier().toUpperCase());
             return projectRepository.save(project);
-        } catch (Exception e){
+        } catch (Exception e) {
             throw new ProjectIdException("Project Name should be Unique Project :" + project.getProjectIdentifier().toUpperCase() + " Exist");
         }
+    }
 
+    public Project findProjectByIdentifier(String projectId) {
+        Project project = projectRepository.findByProjectIdentifier(projectId.toUpperCase());
+        if (project == null) {
+            throw new ProjectIdException("Project Name should be Unique Project :" + project + " Exist");
+        }
+        return project;
     }
 }
