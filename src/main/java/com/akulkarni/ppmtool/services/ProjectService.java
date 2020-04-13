@@ -6,6 +6,8 @@ import exceptions.ProjectIdException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 @Service
 public class ProjectService {
     @Autowired
@@ -28,9 +30,15 @@ public class ProjectService {
         return project;
     }
 
-    public void deleteProjectByProjectId(String projectId){
-        Project project = projectRepository.deleteByProjectIdentifier(projectId.toUpperCase());
-        projectRepository.delete(project);
+    public Iterable<Project> findAllProjects() {
+        return projectRepository.findAll();
     }
 
+    public void deleteProjectByIdentifier(String projectId){
+        Project project = projectRepository.findByProjectIdentifier(projectId);
+        if(project == null){
+            throw new ProjectIdException("Project Name should be Unique Project :" + project + " Exist");
+        }
+         projectRepository.delete(project);
+    }
 }
