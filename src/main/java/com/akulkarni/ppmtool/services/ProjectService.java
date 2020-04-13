@@ -27,4 +27,10 @@ public class ProjectService {
         }
         return project;
     }
+
+    public void deleteProjectByProjectId(String projectId){
+        Project project = projectRepository.deleteByProjectIdentifier(projectId.toUpperCase());
+        projectRepository.delete(project);
+    }
+
 }
