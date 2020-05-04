@@ -1,21 +1,36 @@
 package com.akulkarni.ppmtool.services;
 
+import com.akulkarni.ppmtool.domain.Backlog;
 import com.akulkarni.ppmtool.domain.Project;
+import com.akulkarni.ppmtool.repositories.BacklogRepository;
 import com.akulkarni.ppmtool.repositories.ProjectRepository;
 import exceptions.ProjectIdException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
-
 @Service
 public class ProjectService {
     @Autowired
     private ProjectRepository projectRepository;
+    @Autowired
+    private BacklogRepository backlogRepository;
 
     public Project saveOrUpdateProject(Project project) {
         try {
             project.setProjectIdentifier(project.getProjectIdentifier().toUpperCase());
+
+
+            if (project.getId() == null) {
+                Backlog backlog = new Backlog();
+                project.setBacklog(backlog);
+                backlog.setProject(project);
+                backlog.setProjectIdentifier(project.getProjectIdentifier().toUpperCase());
+            }
+
+            if(project.getId() != null){
+                project.setBacklog(backlogRepository.findByProjectIdentifier(project.getProjectIdentifier().toUpperCase()));
+            }
+
             return projectRepository.save(project);
         } catch (Exception e) {
             throw new ProjectIdException("Project Name should be Unique Project :" + project.getProjectIdentifier().toUpperCase() + " Exist");
@@ -34,11 +49,11 @@ public class ProjectService {
         return projectRepository.findAll();
     }
 
-    public void deleteProjectByIdentifier(String projectId){
+    public void deleteProjectByIdentifier(String projectId) {
         Project project = projectRepository.findByProjectIdentifier(projectId);
-        if(project == null){
+        if (project == null) {
             throw new ProjectIdException("Project Name should be Unique Project :" + project + " Exist");
         }
-         projectRepository.delete(project);
+        projectRepository.delete(project);
     }
 }

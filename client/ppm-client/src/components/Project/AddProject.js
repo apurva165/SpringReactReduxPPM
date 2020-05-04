@@ -1,18 +1,29 @@
 import React, { Component } from 'react'
+import PropTypes from "prop-types";
+import {createProject} from "../../actions/projectActions"
+import { connect } from 'react-redux';
+import classnames from "classnames";
 
-export default class AddProject extends Component {
+class AddProject extends Component {
     constructor(){
         super();
         this.state = {
-            "projectName": "",
-            "projectIdentifier": "",
-            "description": "  ",
-            "start_date": "",
-            "end_date": ""
+            projectName: "",
+            projectIdentifier: "",
+            description: "  ",
+            start_date: "",
+            end_date: "", 
+            errors:{}
         }
 
         this.onChange = this.onChange.bind(this);
         this.onSubmit = this.onSubmit.bind(this);
+    }
+
+    componentWillReceiveProps(nextProps){
+        if(nextProps.errors){
+            this.setState({errors: nextProps.errors})
+        }
     }
 
     onChange(e){
@@ -20,7 +31,9 @@ export default class AddProject extends Component {
     }
 
     onSubmit(e){
-        e.preventdefaut();
+        console.log("Inside On Submit");
+        
+         e.preventDefault();
         const newProject = {
             projectName: this.state.projectName,
             projectIdentifier: this.state.projectIdentifier,
@@ -28,10 +41,14 @@ export default class AddProject extends Component {
             start_date: this.state.start_date,
             end_date: this.state.end_date
         }
+       this.props.createProject(newProject, this.props.history);
     }
     
     render() {
+
+        const {errors} = this.state
         return (
+            <div>
             <div className="project">
             <div className="container">
                 <div className="row">
@@ -40,18 +57,23 @@ export default class AddProject extends Component {
                         <hr />
                         <form onSubmit={this.onSubmit}>
                             <div className="form-group">
-                                <input type="text" className="form-control form-control-lg " placeholder="Project Name" 
+                                <input type="text" className={classnames("form-control form-control-lg",{
+                                    "is-invalid" :errors.projectName
+                                })} 
+                                placeholder="Project Name" 
                                 name="projectName"
-                                value={this.state.projectName}
-                                onChange={this.onChange}
+                               value={this.state.projectName}
+                               onChange={this.onChange}
                                 />
+                                <p>{errors.projectName}</p>
                             </div>
                             <div className="form-group">
                                 <input type="text" className="form-control form-control-lg" placeholder="Unique Project ID"
                                 name="projectIdentifier"  
-                                value={this.state.projectIdentifier}
-                                onChange={this.onChange}   
+                               value={this.state.projectIdentifier}
+                               onChange={this.onChange}   
                                 />
+                                <p>{errors.projectIdentifier}</p>
                             </div>
 
                             <div className="form-group">
@@ -82,6 +104,21 @@ export default class AddProject extends Component {
                 </div>
             </div>
         </div>
+    </div> 
         );
     };
 }
+
+AddProject.propTypes = {
+    createProject : PropTypes.func.isRequired,
+    errors: PropTypes.object.isRequired
+}
+
+const mapStateToProps = state => ({
+    errors : state.errors
+});
+
+export default connect(
+    mapStateToProps, 
+    {createProject}) 
+    (AddProject);
