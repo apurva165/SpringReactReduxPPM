@@ -2,9 +2,12 @@ package com.akulkarni.ppmtool.services;
 
 import com.akulkarni.ppmtool.domain.Backlog;
 import com.akulkarni.ppmtool.domain.Project;
+import com.akulkarni.ppmtool.domain.User;
 import com.akulkarni.ppmtool.repositories.BacklogRepository;
 import com.akulkarni.ppmtool.repositories.ProjectRepository;
+import com.akulkarni.ppmtool.repositories.UserRepository;
 import exceptions.ProjectIdException;
+import exceptions.ProjectNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -14,9 +17,28 @@ public class ProjectService {
     private ProjectRepository projectRepository;
     @Autowired
     private BacklogRepository backlogRepository;
+    @Autowired
+    private UserRepository userRepository;
 
-    public Project saveOrUpdateProject(Project project) {
+    public Project saveOrUpdateProject(Project project, String userName) {
+
+        if(project.getId() != null){
+            Project existingProject = projectRepository.findByProjectIdentifier(project.getProjectIdentifier());
+
+            if(existingProject != null && (!existingProject.getProjectLeader().equals(userName))){
+                throw new ProjectNotFoundException("Project Not found");
+            } else if (existingProject == null){
+                throw new ProjectNotFoundException("Project with ID  : " + project.getProjectIdentifier() + " cannot be updated" +
+                        "cos its dose non t exist" );
+            }
+        }
+
         try {
+
+            User user = userRepository.findByUsername(userName);
+
+            project.setUser(user);
+            project.setProjectLeader(user.getUsername());
             project.setProjectIdentifier(project.getProjectIdentifier().toUpperCase());
 
 
@@ -37,23 +59,28 @@ public class ProjectService {
         }
     }
 
-    public Project findProjectByIdentifier(String projectId) {
+    public Project findProjectByIdentifier(String projectId, String userName) {
         Project project = projectRepository.findByProjectIdentifier(projectId.toUpperCase());
         if (project == null) {
             throw new ProjectIdException("Project Name should be Unique Project :" + project + " Exist");
         }
+
+        if(!project.getProjectLeader().equals(userName)){
+            throw new ProjectNotFoundException("Project Not Found on your account");
+        }
         return project;
     }
 
-    public Iterable<Project> findAllProjects() {
-        return projectRepository.findAll();
+    public Iterable<Project> findAllProjects(String userName) {
+        return projectRepository.findAllByProjectLeader(userName);
     }
 
-    public void deleteProjectByIdentifier(String projectId) {
-        Project project = projectRepository.findByProjectIdentifier(projectId);
-        if (project == null) {
-            throw new ProjectIdException("Project Name should be Unique Project :" + project + " Exist");
-        }
-        projectRepository.delete(project);
+    public void deleteProjectByIdentifier(String projectId, String userName) {
+        projectRepository.delete(findProjectByIdentifier(projectId, userName));
+//        Project project = projectRepository.findByProjectIdentifier(projectId);
+//        if (project == null) {
+//            throw new ProjectIdException("Project Name should be Unique Project :" + project + " Exist");
+//        }
+//        projectRepository.delete(project);
     }
 }
